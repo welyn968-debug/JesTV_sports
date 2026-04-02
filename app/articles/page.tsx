@@ -43,9 +43,7 @@ export default function ArticlesPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', background: '#E4E4E4' }}>
           {articles.map((article) => (
             <Link key={article.id} href={`/article/${article.id}`} style={{ textDecoration: 'none' }}>
-              <article style={{ background: '#fff', padding: '20px 24px', cursor: 'pointer', transition: 'background 0.15s' }}
-                onMouseEnter={e => (e.currentTarget.style.background = '#FAFAFA')}
-                onMouseLeave={e => (e.currentTarget.style.background = '#fff')}>
+              <article className="article-row">
                 {/* Top row */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                   <span style={{ background: CAT_COLORS[article.category] ?? '#888', color: '#fff', fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', padding: '3px 8px', borderRadius: '2px' }}>

@@ -33,9 +33,7 @@ export default function CategoriesPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px' }}>
           {categories.map(cat => (
             <Link key={cat.id} href={`/category/${cat.id}`} style={{ textDecoration: 'none' }}>
-              <div style={{ background: '#fff', borderRadius: '4px', overflow: 'hidden', cursor: 'pointer', transition: 'transform 0.15s, box-shadow 0.15s', border: '1px solid #E4E4E4' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; (e.currentTarget as HTMLDivElement).style.boxShadow = '0 4px 20px rgba(0,0,0,0.08)' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'; (e.currentTarget as HTMLDivElement).style.boxShadow = 'none' }}>
+              <div className="category-card">
                 {/* Color bar */}
                 <div style={{ height: '5px', background: cat.color }} />
                 <div style={{ padding: '20px 22px 22px' }}>

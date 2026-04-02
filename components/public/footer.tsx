@@ -55,10 +55,8 @@ export default function Footer() {
               </h4>
               <nav style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {col.links.map(l => (
-                  <Link key={l.href} href={l.href}
-                    style={{ color: '#888', fontSize: '13px', textDecoration: 'none', transition: 'color 0.15s' }}
-                    onMouseEnter={e => (e.currentTarget.style.color = '#fff')}
-                    onMouseLeave={e => (e.currentTarget.style.color = '#888')}>
+                  <Link key={l.href} href={l.href} className="footer-link"
+                    style={{ fontSize: '13px', textDecoration: 'none' }}>
                     {l.label}
                   </Link>
                 ))}
@@ -74,10 +72,8 @@ export default function Footer() {
           </p>
           <div style={{ display: 'flex', gap: '20px' }}>
             {['Twitter', 'Instagram', 'Facebook'].map(s => (
-              <a key={s} href={`https://${s.toLowerCase()}.com`}
-                style={{ fontSize: '12px', color: '#555', textDecoration: 'none', transition: 'color 0.15s' }}
-                onMouseEnter={e => (e.currentTarget.style.color = '#E8000D')}
-                onMouseLeave={e => (e.currentTarget.style.color = '#555')}>
+              <a key={s} href={`https://${s.toLowerCase()}.com`} className="footer-social"
+                style={{ fontSize: '12px', textDecoration: 'none' }}>
                 {s}
               </a>
             ))}
