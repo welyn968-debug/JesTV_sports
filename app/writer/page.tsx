@@ -1,151 +1,376 @@
 'use client';
 
-import Link from 'next/link';
-import { Playfair_Display } from 'next/font/google';
-import { Eye, MessageSquare, Heart, Plus } from 'lucide-react';
+import { useState } from 'react';
+import {
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts';
+import {
+  Bell,
+  FileText,
+  LayoutGrid,
+  MessageSquare,
+  Pencil,
+  Plus,
+  TrendingUp,
+  User,
+  BarChart3,
+  Eye,
+  Trash2,
+} from 'lucide-react';
 
-const playfair = Playfair_Display({ subsets: ['latin'] });
-
-// Mock data - replace with API calls
-const writerStats = {
-  totalViews: 15420,
-  totalComments: 342,
-  totalLikes: 1203,
-  articlesPublished: 24,
+const RED = '#E8000D';
+const MUTED = '#888';
+const BORDER = '#E8E8E8';
+const CAT_COLORS: Record<string, string> = {
+  'Match Reports': '#E8000D',
+  Transfers: '#FF6B00',
+  Opinion: '#7B2FBE',
+  Interviews: '#0066CC',
+  Fixtures: '#00875A',
+  Analysis: '#334155',
 };
 
-const recentArticles = [
-  {
-    id: 1,
-    title: 'The Evolution of Modern Football Tactics in 2025',
-    status: 'published',
-    views: 3420,
-    comments: 42,
-    likes: 156,
-    publishedDate: '3 days ago',
-  },
-  {
-    id: 2,
-    title: 'Young Talent: The Next Generation of Elite Defenders',
-    status: 'published',
-    views: 2890,
-    comments: 38,
-    likes: 124,
-    publishedDate: '1 week ago',
-  },
-  {
-    id: 3,
-    title: 'Draft Article: Transfer Window Analysis',
-    status: 'draft',
-    views: 0,
-    comments: 0,
-    likes: 0,
-    publishedDate: '2 days ago',
-  },
+const kpis = [
+  { label: 'My Total Views', value: '6,862', badge: '+8%', icon: Eye, iconColor: RED, iconBg: 'rgba(232,0,13,0.1)' },
+  { label: 'My Articles', value: '24', badge: '4 new', icon: FileText, iconColor: '#0066CC', iconBg: 'rgba(0,102,204,0.1)' },
+  { label: 'Comments', value: '47', badge: '+12%', icon: MessageSquare, iconColor: '#7B2FBE', iconBg: 'rgba(123,47,190,0.1)' },
+  { label: 'Views This Week', value: '921', badge: 'vs last wk', icon: TrendingUp, iconColor: '#00875A', iconBg: 'rgba(0,135,90,0.1)' },
+];
+
+const writerViews = [
+  { label: 'Mon', views: 340 },
+  { label: 'Tue', views: 520 },
+  { label: 'Wed', views: 410 },
+  { label: 'Thu', views: 680 },
+  { label: 'Fri', views: 890 },
+  { label: 'Sat', views: 760 },
+  { label: 'Sun', views: 921 },
+];
+
+const writerCategories = [
+  { label: 'Match Rep.', views: 3200 },
+  { label: 'Interviews', views: 2341 },
+  { label: 'Opinion', views: 1321 },
+];
+
+const allArticles = [
+  { title: 'Gor Mahia Clinch Title With Stunning 3-0 Win', category: 'Match Reports', author: 'James Ochieng', status: 'published', views: '4,521', date: '19 Mar' },
+  { title: 'Victor Wanyama Returns to KPL - Official', category: 'Transfers', author: 'Amina Said', status: 'published', views: '8,932', date: '18 Mar' },
+  { title: 'Why Kenya Will Qualify for AFCON 2027', category: 'Opinion', author: 'Kevin Mwangi', status: 'draft', views: '-', date: '17 Mar' },
+  { title: 'AFC Leopards New Signing: Press Conference', category: 'Interviews', author: 'James Ochieng', status: 'published', views: '2,341', date: '16 Mar' },
+];
+
+const myArticles = [
+  { title: 'Gor Mahia Clinch Title With Stunning 3-0 Win', category: 'Match Reports', status: 'published', views: '4,521', date: '19 Mar' },
+  { title: 'AFC Leopards New Signing: Press Conference', category: 'Interviews', status: 'published', views: '2,341', date: '16 Mar' },
+];
+
+const comments = [
+  { initials: 'PK', name: 'Peter Kamau', ref: 'Gor Mahia Clinch Title...', body: 'Great match analysis! Gor Mahia was dominant throughout.', time: '1h ago' },
+  { initials: 'SN', name: 'Sarah Njoki', ref: 'Victor Wanyama Returns...', body: 'The Wanyama return is huge for Kenyan football. Great piece.', time: '3h ago' },
+  { initials: 'DO', name: 'Denis Otieno', ref: 'Gor Mahia Clinch Title...', body: 'I agree with most points but the midfield work was underrated.', time: '5h ago' },
+];
+
+const navItems = [
+  { label: 'Dashboard', icon: LayoutGrid, active: true },
+  { label: 'My Articles', icon: FileText, badge: '24' },
+  { label: 'New Article', icon: Pencil },
+  { label: 'Comments', icon: MessageSquare, badge: '7' },
+  { label: 'Analytics', icon: BarChart3 },
+  { label: 'My Profile', icon: User },
 ];
 
 export default function WriterDashboard() {
-  return (
-    <div className="p-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-12">
-        <div>
-          <h1 className={`${playfair.className} text-4xl font-bold text-foreground mb-2`}>
-            Welcome Back
-          </h1>
-          <p className="text-muted-foreground">Manage your articles and track your performance</p>
-        </div>
-        <Link
-          href="/writer/new"
-          className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-sm font-medium hover:bg-accent transition-colors"
-        >
-          <Plus size={20} />
-          New Article
-        </Link>
-      </div>
+  const [tab, setTab] = useState<'all' | 'mine'>('all');
 
-      {/* Stats Grid */}
-      <div className="grid md:grid-cols-4 gap-6 mb-12">
-        {[
-          { label: 'Total Views', value: writerStats.totalViews, icon: Eye },
-          { label: 'Total Comments', value: writerStats.totalComments, icon: MessageSquare },
-          { label: 'Total Likes', value: writerStats.totalLikes, icon: Heart },
-          { label: 'Published', value: writerStats.articlesPublished, icon: null },
-        ].map((stat, i) => {
-          const Icon = stat.icon;
-          return (
-            <div key={i} className="bg-card border border-border p-6 rounded-sm">
-              <div className="flex items-start justify-between">
-                <div>
-                  <p className="text-muted-foreground text-sm mb-1">{stat.label}</p>
-                  <p className="text-3xl font-bold text-foreground">
-                    {typeof stat.value === 'number' ? stat.value.toLocaleString() : stat.value}
-                  </p>
+  return (
+    <div className="dash-layout">
+      <aside className="sidebar">
+        <div className="sb-logo">
+          <div className="sb-bar" />
+          <div>
+            <div className="sb-title">
+              JESTV <span>SPORTS</span>
+            </div>
+            <div className="sb-sub">Writer Portal</div>
+          </div>
+        </div>
+        <nav className="sb-nav">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button key={item.label} className={`sb-item${item.active ? ' active' : ''}`} type="button">
+                <Icon className="sb-icon" size={16} strokeWidth={2} />
+                {item.label}
+                {item.badge && <span className="sb-badge">{item.badge}</span>}
+              </button>
+            );
+          })}
+        </nav>
+        <div className="sb-user">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div className="sb-avatar">JO</div>
+            <div>
+              <div className="sb-name">James Ochieng</div>
+              <div className="sb-role">Sports Writer</div>
+            </div>
+          </div>
+          <button className="sb-signout" type="button">
+            Sign out
+          </button>
+        </div>
+      </aside>
+
+      <div className="dash-main">
+        <div className="topbar">
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 18, color: 'var(--black)' }}>Good morning, James</div>
+            <div className="topbar-sub">Thursday, 19 March 2026</div>
+          </div>
+          <div className="topbar-right">
+            <button className="btn-red" type="button">
+              <Plus size={13} strokeWidth={2.5} />
+              New Article
+            </button>
+            <div style={{ position: 'relative', cursor: 'pointer' }}>
+              <Bell size={18} color="#333" />
+              <div style={{ position: 'absolute', top: -4, right: -4, width: 8, height: 8, background: RED, borderRadius: '50%' }} />
+            </div>
+          </div>
+        </div>
+
+        <div className="dash-body">
+          <div className="kpi-grid">
+            {kpis.map((kpi) => {
+              const Icon = kpi.icon;
+              return (
+                <div key={kpi.label} className="kpi-card">
+                  <div className="kpi-top">
+                    <div className="kpi-icon" style={{ background: kpi.iconBg }}>
+                      <Icon size={17} strokeWidth={2} color={kpi.iconColor} />
+                    </div>
+                    <span className="kpi-badge up">{kpi.badge}</span>
+                  </div>
+                  <div className="kpi-label">{kpi.label}</div>
+                  <div className="kpi-value">{kpi.value}</div>
                 </div>
-                {Icon && <Icon size={24} className="text-muted-foreground" />}
+              );
+            })}
+          </div>
+
+          <div className="chart-grid">
+            <div className="chart-card">
+              <div className="chart-header">
+                <div>
+                  <div className="chart-title">My Views</div>
+                  <div className="chart-sub">Last 7 days</div>
+                </div>
+                <div className="trend-badge up">
+                  <TrendingUp size={13} strokeWidth={2.5} />
+                  <span style={{ fontWeight: 700, fontSize: 12 }}>+8% vs last week</span>
+                </div>
+              </div>
+              <div style={{ width: '100%', height: 220 }}>
+                <ResponsiveContainer>
+                  <AreaChart data={writerViews} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="writerViewsFill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={RED} stopOpacity={0.2} />
+                        <stop offset="95%" stopColor={RED} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid stroke="#F3F3F3" vertical={false} />
+                    <XAxis dataKey="label" tick={{ fill: MUTED, fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fill: MUTED, fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <Tooltip
+                      contentStyle={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 6, fontSize: 12 }}
+                      labelStyle={{ color: '#111', fontWeight: 600 }}
+                    />
+                    <Area type="monotone" dataKey="views" stroke={RED} strokeWidth={2.5} fill="url(#writerViewsFill)" />
+                  </AreaChart>
+                </ResponsiveContainer>
               </div>
             </div>
-          );
-        })}
-      </div>
 
-      {/* Recent Articles */}
-      <div>
-        <h2 className={`${playfair.className} text-2xl font-bold text-foreground mb-6`}>
-          Recent Articles
-        </h2>
-        <div className="border border-border rounded-sm overflow-hidden">
-          <table className="w-full">
-            <thead className="bg-muted/30 border-b border-border">
-              <tr>
-                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">Title</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">Status</th>
-                <th className="px-6 py-3 text-center text-sm font-medium text-foreground">Views</th>
-                <th className="px-6 py-3 text-center text-sm font-medium text-foreground">Comments</th>
-                <th className="px-6 py-3 text-center text-sm font-medium text-foreground">Likes</th>
-                <th className="px-6 py-3 text-left text-sm font-medium text-foreground">Published</th>
-                <th className="px-6 py-3 text-center text-sm font-medium text-foreground">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentArticles.map((article) => (
-                <tr key={article.id} className="border-b border-border hover:bg-muted/10 transition-colors">
-                  <td className="px-6 py-4">
-                    <p className="font-medium text-foreground text-sm text-pretty">{article.title}</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-3 py-1 rounded-sm text-xs font-medium ${
-                        article.status === 'published'
-                          ? 'bg-green-100/20 text-green-700'
-                          : 'bg-yellow-100/20 text-yellow-700'
-                      }`}
-                    >
-                      {article.status.charAt(0).toUpperCase() + article.status.slice(1)}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-center text-sm text-muted-foreground">
-                    {article.views.toLocaleString()}
-                  </td>
-                  <td className="px-6 py-4 text-center text-sm text-muted-foreground">
-                    {article.comments}
-                  </td>
-                  <td className="px-6 py-4 text-center text-sm text-muted-foreground">
-                    {article.likes}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-muted-foreground">{article.publishedDate}</td>
-                  <td className="px-6 py-4 text-center">
-                    <Link
-                      href={`/writer/articles/${article.id}`}
-                      className="text-primary hover:text-accent text-sm font-medium"
-                    >
-                      Edit
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            <div className="chart-card">
+              <div className="chart-title">My Traffic by Category</div>
+              <div className="chart-sub" style={{ marginBottom: 20 }}>
+                All time
+              </div>
+              <div style={{ width: '100%', height: 220 }}>
+                <ResponsiveContainer>
+                  <BarChart data={writerCategories} layout="vertical" margin={{ left: 20, right: 20 }}>
+                    <CartesianGrid stroke="#F3F3F3" horizontal={false} />
+                    <XAxis type="number" tick={{ fill: MUTED, fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis type="category" dataKey="label" tick={{ fill: MUTED, fontSize: 11 }} axisLine={false} tickLine={false} />
+                    <Tooltip
+                      contentStyle={{ background: '#fff', border: `1px solid ${BORDER}`, borderRadius: 6, fontSize: 12 }}
+                      labelStyle={{ color: '#111', fontWeight: 600 }}
+                    />
+                    <Bar dataKey="views" fill={RED} radius={[4, 4, 4, 4]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+
+          <div className="data-card">
+            <div className="data-card-header">
+              <div className="tab-row">
+                <button
+                  className={`tab-btn${tab === 'all' ? ' active' : ''}`}
+                  type="button"
+                  onClick={() => setTab('all')}
+                >
+                  All Articles
+                </button>
+                <button
+                  className={`tab-btn${tab === 'mine' ? ' active' : ''}`}
+                  type="button"
+                  onClick={() => setTab('mine')}
+                >
+                  My Articles
+                </button>
+              </div>
+              <button className="btn-red" type="button">
+                <Plus size={12} strokeWidth={2.5} />
+                New Article
+              </button>
+            </div>
+            <div className="table-scroll">
+              {tab === 'all' ? (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Title</th>
+                      <th>Category</th>
+                      <th>Author</th>
+                      <th>Status</th>
+                      <th>Views</th>
+                      <th>Date</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allArticles.map((article) => (
+                      <tr key={article.title}>
+                        <td style={{ maxWidth: 240 }}>
+                          <p style={{ fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>
+                            {article.title}
+                          </p>
+                        </td>
+                        <td>
+                          <span className="cat-badge" style={{ background: CAT_COLORS[article.category] ?? RED }}>
+                            {article.category}
+                          </span>
+                        </td>
+                        <td className="text-muted">{article.author}</td>
+                        <td>
+                          <span className={`status-pill ${article.status}`}>{article.status}</span>
+                        </td>
+                        <td style={{ fontFamily: 'var(--fd)', fontSize: 20, lineHeight: 1 }}>{article.views}</td>
+                        <td className="text-muted">{article.date}</td>
+                        <td>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button className="btn-blue" type="button">
+                              <Pencil size={10} />
+                              Edit
+                            </button>
+                            <button className="btn-icon-danger" type="button">
+                              <Trash2 size={11} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Title</th>
+                      <th>Category</th>
+                      <th>Status</th>
+                      <th>Views</th>
+                      <th>Date</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {myArticles.map((article) => (
+                      <tr key={article.title}>
+                        <td style={{ maxWidth: 280 }}>
+                          <p style={{ fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>
+                            {article.title}
+                          </p>
+                        </td>
+                        <td>
+                          <span className="cat-badge" style={{ background: CAT_COLORS[article.category] ?? RED }}>
+                            {article.category}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`status-pill ${article.status}`}>{article.status}</span>
+                        </td>
+                        <td style={{ fontFamily: 'var(--fd)', fontSize: 20, lineHeight: 1 }}>{article.views}</td>
+                        <td className="text-muted">{article.date}</td>
+                        <td>
+                          <div style={{ display: 'flex', gap: 6 }}>
+                            <button className="btn-blue" type="button">
+                              <Pencil size={10} />
+                              Edit
+                            </button>
+                            <button className="btn-icon-danger" type="button">
+                              <Trash2 size={11} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+
+          <div className="data-card">
+            <div className="data-card-header">
+              <span className="data-card-title">Recent Comments on My Articles</span>
+            </div>
+            {comments.map((comment) => (
+              <div key={comment.body} className="comment-item">
+                <div style={{ display: 'flex', gap: 12, flex: 1 }}>
+                  <div className="avatar" style={{ background: '#f0f0f0', color: 'var(--muted-foreground)' }}>
+                    {comment.initials}
+                  </div>
+                  <div>
+                    <div className="comment-meta">
+                      <span className="comment-name">{comment.name}</span>
+                      <span className="comment-ref">
+                        on <span>{comment.ref}</span>
+                      </span>
+                    </div>
+                    <div className="comment-body">{comment.body}</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, marginLeft: 16, flexShrink: 0 }}>
+                  <span className="text-xs text-muted">{comment.time}</span>
+                  <button className="btn-danger-soft" type="button">
+                    Hide
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

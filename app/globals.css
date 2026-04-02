@@ -101,7 +101,9 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: var(--font-barlow), 'Helvetica Neue', sans-serif;
+    --fd: var(--font-bebas);
+    --fb: var(--font-barlow);
+    font-family: var(--fb), 'Helvetica Neue', sans-serif;
     overflow-x: hidden;
   }
   button {
@@ -127,6 +129,10 @@
   font-family: var(--font-bebas), 'Bebas Neue', Impact, sans-serif;
   letter-spacing: 0.04em;
 }
+.text-muted { color: var(--muted-foreground); }
+.text-xs { font-size: 11px; }
+.table-scroll { overflow-x: auto; }
+.table-scroll table { min-width: 720px; }
 
 /* ── IMG CARD OVERLAY ───────────────────────────────────── */
 .img-overlay {
@@ -356,3 +362,22 @@ tr:hover td { background: #FAFAFA; }
 .comment-name { font-weight: 600; font-size: 13px; color: var(--black); }
 .comment-ref { font-size: 11px; color: var(--muted-foreground); }
 .comment-ref span { color: var(--red); }
+
+/* --- Responsive adjustments --- */
+@media (max-width: 1024px) {
+  .site-grid { grid-template-columns: 1fr; }
+  .chart-grid { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 768px) {
+  .secondary-grid { grid-template-columns: 1fr; }
+  .latest-grid { grid-template-columns: repeat(2, 1fr); }
+  .site-nav-top { flex-direction: column; align-items: stretch; height: auto; gap: 12px; padding: 12px 0; }
+  .site-search { width: 100%; }
+}
+@media (max-width: 640px) {
+  .latest-grid { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: 1fr; }
+  .dash-layout { flex-direction: column; }
+  .sidebar { width: 100%; }
+}
