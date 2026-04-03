@@ -1,4 +1,16 @@
 import { createClient } from '@sanity/client'
+import { config } from 'dotenv'
+import { existsSync } from 'node:fs'
+import { resolve } from 'node:path'
+
+const envLocalPath = resolve(process.cwd(), '.env.local')
+const envPath = resolve(process.cwd(), '.env')
+
+if (existsSync(envLocalPath)) {
+  config({ path: envLocalPath })
+} else if (existsSync(envPath)) {
+  config({ path: envPath })
+}
 
 const projectId = process.env.NEXT_PUBLIC_SANITY_PROJECT_ID
 const dataset = process.env.NEXT_PUBLIC_SANITY_DATASET
