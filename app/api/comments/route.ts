@@ -3,11 +3,11 @@ import { NextResponse, NextRequest } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const { articleId, content, guestName, guestEmail } = await request.json();
+    const { article_slug, body, guest_name, guest_email, parent_id } = await request.json();
 
-    if (!articleId || !content) {
+    if (!article_slug || !body) {
       return NextResponse.json(
-        { error: 'Article ID and content are required' },
+        { error: 'Article slug and body are required' },
         { status: 400 }
       );
     }
@@ -20,11 +20,12 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from('comments')
       .insert({
-        article_id: articleId,
+        article_slug,
+        parent_id: parent_id || null,
         user_id: user?.id || null,
-        guest_name: guestName || null,
-        guest_email: guestEmail || null,
-        content,
+        guest_name: guest_name || null,
+        guest_email: guest_email || null,
+        body,
       })
       .select()
       .single();
@@ -45,11 +46,11 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const articleId = request.nextUrl.searchParams.get('articleId');
+    const articleSlug = request.nextUrl.searchParams.get('article_slug');
 
-    if (!articleId) {
+    if (!articleSlug) {
       return NextResponse.json(
-        { error: 'Article ID is required' },
+        { error: 'Article slug is required' },
         { status: 400 }
       );
     }
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
     const { data, error } = await supabase
       .from('comments')
       .select('*')
-      .eq('article_id', articleId)
+      .eq('article_slug', articleSlug)
       .eq('is_hidden', false)
       .order('created_at', { ascending: false });
 

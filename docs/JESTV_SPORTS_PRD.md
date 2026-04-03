@@ -21,11 +21,11 @@ Build **JESTV SPORTS** — a mobile-first, multi-author football blogging platfo
 2. **Writer Dashboard** (`author.jestvsports.com`) — custom CMS for invited writers: write, publish, manage profile, track personal analytics
 3. **Admin Dashboard** (`admin.jestvsports.com`) — full platform management: writers, content, categories, comments, platform-wide analytics
 
-Both dashboards are fully custom-built — no Sanity Studio. Sanity v3 remains the content store; all reads and writes go through the Sanity API. Auth is unified under Supabase Auth with role-based access control.
+Both dashboards are fully custom-built alongside a Sanity Studio. Sanity v3 remains the content store; reads and writes go through the Sanity API. Auth is unified under Supabase Auth with role-based access control.
 
 **Tech Stack:**
 - **Frontend + Dashboards:** Next.js 15 (App Router, TypeScript) — single app, three surfaces
-- **Content Store:** Sanity v3 (headless API only, no Studio)
+- **Content Store:** Sanity v3 (headless API + Studio)
 - **Rich Text Editor:** `@sanity/portable-text-editor` (embedded in custom UI)
 - **Database & Auth:** Supabase (PostgreSQL + Supabase Auth)
 - **Subdomain Routing:** Vercel middleware rewrites (single Next.js app, multiple subdomains)
@@ -142,7 +142,7 @@ app/
 ```
 
 ### 3. Content Store — Sanity API (Headless)
-- Sanity v3 used as headless API only — no Studio, no `/studio` route
+- Sanity v3 used as headless API with a Studio app available for admin/editor access
 - All reads: `@sanity/client` GROQ queries, server-side in Next.js Server Components
 - All writes: Sanity Mutations API called from Next.js API routes (server-side only)
 - Write token stored in environment variables, never exposed to client
@@ -306,7 +306,7 @@ writer_invites (
   - `author.jestvsports.com` — writer dashboard
   - `admin.jestvsports.com` — admin dashboard
 - **Vercel config:** All three subdomains on same deployment. Middleware routes internally.
-- **Sanity project:** `jestvs-sports` — API only, no Studio deployment
+- **Sanity project:** `jestvs-sports` — API + Studio deployment
 - **Supabase project:** `jestvs-sports`
 - **Vercel project:** `jestvs-sports`
 - **Domain recommendation:** `jestvsports.co.ke` (Kenyan identity) or `jestvsports.com`

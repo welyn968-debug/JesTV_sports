@@ -1,22 +1,41 @@
-'use client';
+'use client'
 
-import Link from 'next/link';
-import { Plus, Edit2, Trash2, Eye } from 'lucide-react';
-import { useState } from 'react';
-
-const myArticles = [
-  { id: '1', title: 'Gor Mahia Clinch Title With Stunning 3-0 Win', category: 'Match Reports', status: 'published', views: 4521, date: '19 Mar 2026' },
-  { id: '4', title: 'AFC Leopards New Signing: Press Conference',    category: 'Interviews',    status: 'published', views: 2341, date: '16 Mar 2026' },
-  { id: '6', title: 'Tactics That Defined the KPL Season',          category: 'Analysis',      status: 'draft',     views: 0,    date: '14 Mar 2026' },
-];
+import Link from 'next/link'
+import { Plus, Edit2, Trash2, Eye } from 'lucide-react'
+import { useEffect, useState } from 'react'
 
 const CAT: Record<string, string> = {
   'Match Reports': '#E8000D', Transfers: '#FF6B00', Opinion: '#7B2FBE',
   Interviews: '#0066CC', Fixtures: '#00875A', Analysis: '#334155',
-};
+}
+
+type ArticleRow = {
+  id: string
+  title: string
+  slug?: string
+  category?: { title?: string; color?: string }
+  status: 'draft' | 'published'
+  publishedAt?: string
+  _updatedAt?: string
+}
 
 export default function WriterArticlesPage() {
-  const [articles, setArticles] = useState(myArticles);
+  const [articles, setArticles] = useState<ArticleRow[]>([])
+
+  useEffect(() => {
+    const load = async () => {
+      const res = await fetch('/api/articles?mine=true')
+      if (!res.ok) return
+      const data = await res.json()
+      setArticles(data.items || [])
+    }
+    load().catch(() => null)
+  }, [])
+
+  const remove = async (id: string) => {
+    await fetch(`/api/articles/${id}`, { method: 'DELETE' })
+    setArticles(prev => prev.filter(a => a.id !== id))
+  }
 
   return (
     <div className="p-8">
@@ -48,26 +67,26 @@ export default function WriterArticlesPage() {
                 </td>
                 <td className="px-5 py-4">
                   <span className="px-2 py-1 rounded text-white text-xs font-bold"
-                    style={{ background: CAT[a.category] ?? '#888' }}>{a.category}</span>
+                    style={{ background: a.category?.color || CAT[a.category?.title || ''] ?? '#888' }}>
+                    {a.category?.title || 'Category'}
+                  </span>
                 </td>
                 <td className="px-5 py-4">
                   <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${a.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
                     {a.status}
                   </span>
                 </td>
-                <td className="px-5 py-4 text-sm font-semibold text-foreground">
-                  {a.views > 0 ? a.views.toLocaleString() : '—'}
-                </td>
-                <td className="px-5 py-4 text-sm text-muted-foreground whitespace-nowrap">{a.date}</td>
+                <td className="px-5 py-4 text-sm font-semibold text-foreground">—</td>
+                <td className="px-5 py-4 text-sm text-muted-foreground whitespace-nowrap">{a.publishedAt || a._updatedAt || '—'}</td>
                 <td className="px-5 py-4">
                   <div className="flex gap-1.5">
-                    <Link href={`/article/${a.id}`} className="p-1.5 bg-muted hover:bg-muted/80 rounded transition-colors text-muted-foreground">
+                    <Link href={`/article/${a.slug || a.id}`} className="p-1.5 bg-muted hover:bg-muted/80 rounded transition-colors text-muted-foreground">
                       <Eye size={13}/>
                     </Link>
-                    <button className="flex items-center gap-1 px-2.5 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-xs font-semibold transition-colors">
+                    <Link href={`/writer/new?id=${a.id}`} className="flex items-center gap-1 px-2.5 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 rounded text-xs font-semibold transition-colors">
                       <Edit2 size={11}/> Edit
-                    </button>
-                    <button onClick={() => setArticles(p => p.filter(x => x.id !== a.id))}
+                    </Link>
+                    <button onClick={() => remove(a.id)}
                       className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded transition-colors">
                       <Trash2 size={13}/>
                     </button>
@@ -79,5 +98,5 @@ export default function WriterArticlesPage() {
         </table>
       </div>
     </div>
-  );
+  )
 }

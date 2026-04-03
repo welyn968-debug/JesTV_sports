@@ -1,30 +1,49 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import { Plus, Edit2, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react'
+import { Plus, Edit2, Trash2 } from 'lucide-react'
 
-const initialCategories = [
-  { id: 1, name: 'Match Reports', slug: 'match-reports', color: '#E8000D', articles: 12 },
-  { id: 2, name: 'Transfers',     slug: 'transfers',     color: '#FF6B00', articles: 8  },
-  { id: 3, name: 'Opinion',       slug: 'opinion',       color: '#7B2FBE', articles: 6  },
-  { id: 4, name: 'Interviews',    slug: 'interviews',    color: '#0066CC', articles: 5  },
-  { id: 5, name: 'Fixtures',      slug: 'fixtures',      color: '#00875A', articles: 3  },
-];
+type Category = {
+  _id: string
+  title: string
+  slug: string
+  color?: string
+  articleCount?: number
+}
 
 export default function AdminCategoriesPage() {
-  const [categories, setCategories] = useState(initialCategories);
-  const [newName, setNewName]       = useState('');
-  const [newColor, setNewColor]     = useState('#334155');
-  const [adding, setAdding]         = useState(false);
+  const [categories, setCategories] = useState<Category[]>([])
+  const [newName, setNewName]       = useState('')
+  const [newColor, setNewColor]     = useState('#334155')
+  const [adding, setAdding]         = useState(false)
 
-  const add = () => {
-    if (!newName.trim()) return;
-    const slug = newName.toLowerCase().replace(/\s+/g, '-');
-    setCategories(prev => [...prev, { id: Date.now(), name: newName.trim(), slug, color: newColor, articles: 0 }]);
-    setNewName(''); setNewColor('#334155'); setAdding(false);
-  };
+  useEffect(() => {
+    const load = async () => {
+      const res = await fetch('/api/categories')
+      if (!res.ok) return
+      const data = await res.json()
+      setCategories(data || [])
+    }
+    load().catch(() => null)
+  }, [])
 
-  const remove = (id: number) => setCategories(prev => prev.filter(c => c.id !== id));
+  const add = async () => {
+    if (!newName.trim()) return
+    const res = await fetch('/api/categories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: newName.trim(), color: newColor }),
+    })
+    if (res.ok) {
+      const created = await res.json()
+      setCategories(prev => [...prev, { _id: created._id, title: created.title, slug: created.slug?.current || '', color: created.color }])
+      setNewName('')
+      setNewColor('#334155')
+      setAdding(false)
+    }
+  }
+
+  const remove = (id: string) => setCategories(prev => prev.filter(c => c._id !== id))
 
   return (
     <div className="p-8 max-w-2xl">
@@ -39,7 +58,6 @@ export default function AdminCategoriesPage() {
         </button>
       </div>
 
-      {/* New category form */}
       {adding && (
         <div className="bg-card border border-border rounded-sm p-5 mb-6 space-y-3">
           <h3 className="font-semibold text-foreground text-sm">Add Category</h3>
@@ -64,23 +82,22 @@ export default function AdminCategoriesPage() {
         </div>
       )}
 
-      {/* List */}
       <div className="bg-card border border-border rounded-sm overflow-hidden">
         {categories.map((c, i) => (
-          <div key={c.id} className={`flex items-center gap-4 px-5 py-4 ${i < categories.length - 1 ? 'border-b border-border' : ''}`}>
-            <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: c.color }} />
+          <div key={c._id} className={`flex items-center gap-4 px-5 py-4 ${i < categories.length - 1 ? 'border-b border-border' : ''}`}>
+            <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: c.color || '#E8000D' }} />
             <div className="flex-1">
-              <p className="font-semibold text-foreground text-sm">{c.name}</p>
-              <p className="text-xs text-muted-foreground">/{c.slug} · {c.articles} articles</p>
+              <p className="font-semibold text-foreground text-sm">{c.title}</p>
+              <p className="text-xs text-muted-foreground">/{c.slug} · {c.articleCount ?? 0} articles</p>
             </div>
-            <span className="text-xs font-bold text-white px-2 py-0.5 rounded" style={{ background: c.color }}>{c.name}</span>
+            <span className="text-xs font-bold text-white px-2 py-0.5 rounded" style={{ background: c.color || '#E8000D' }}>{c.title}</span>
             <div className="flex gap-1.5">
               <button className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded transition-colors"><Edit2 size={12}/></button>
-              <button onClick={() => remove(c.id)} className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded transition-colors"><Trash2 size={12}/></button>
+              <button onClick={() => remove(c._id)} className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded transition-colors"><Trash2 size={12}/></button>
             </div>
           </div>
         ))}
       </div>
     </div>
-  );
+  )
 }

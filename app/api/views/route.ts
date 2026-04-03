@@ -3,11 +3,11 @@ import { NextResponse, NextRequest } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const { articleId } = await request.json();
+    const { article_slug, category_slug, author_sanity_id } = await request.json();
 
-    if (!articleId) {
+    if (!article_slug) {
       return NextResponse.json(
-        { error: 'Article ID is required' },
+        { error: 'Article slug is required' },
         { status: 400 }
       );
     }
@@ -26,7 +26,9 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase
       .from('article_views')
       .insert({
-        article_id: articleId,
+        article_slug,
+        category_slug: category_slug || null,
+        author_sanity_id: author_sanity_id || null,
         user_id: user?.id || null,
         ip_address: ip,
       })
@@ -38,16 +40,10 @@ export async function POST(request: NextRequest) {
       console.error('View tracking error:', error);
     }
 
-    return NextResponse.json(
-      { message: 'View recorded' },
-      { status: 201 }
-    );
+    return NextResponse.json({ recorded: true }, { status: 201 });
   } catch (error) {
     console.error('Views API error:', error);
     // Don't fail the request - this is just analytics
-    return NextResponse.json(
-      { message: 'View recorded' },
-      { status: 201 }
-    );
+    return NextResponse.json({ recorded: true }, { status: 201 });
   }
 }

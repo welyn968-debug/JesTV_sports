@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import {
   Area,
   AreaChart,
@@ -61,17 +62,16 @@ const writerCategories = [
   { label: 'Opinion', views: 1321 },
 ];
 
-const allArticles = [
-  { title: 'Gor Mahia Clinch Title With Stunning 3-0 Win', category: 'Match Reports', author: 'James Ochieng', status: 'published', views: '4,521', date: '19 Mar' },
-  { title: 'Victor Wanyama Returns to KPL - Official', category: 'Transfers', author: 'Amina Said', status: 'published', views: '8,932', date: '18 Mar' },
-  { title: 'Why Kenya Will Qualify for AFCON 2027', category: 'Opinion', author: 'Kevin Mwangi', status: 'draft', views: '-', date: '17 Mar' },
-  { title: 'AFC Leopards New Signing: Press Conference', category: 'Interviews', author: 'James Ochieng', status: 'published', views: '2,341', date: '16 Mar' },
-];
-
-const myArticles = [
-  { title: 'Gor Mahia Clinch Title With Stunning 3-0 Win', category: 'Match Reports', status: 'published', views: '4,521', date: '19 Mar' },
-  { title: 'AFC Leopards New Signing: Press Conference', category: 'Interviews', status: 'published', views: '2,341', date: '16 Mar' },
-];
+type ArticleRow = {
+  id: string
+  title: string
+  slug?: string
+  category?: { title?: string; color?: string }
+  author?: { name?: string }
+  status: 'draft' | 'published'
+  publishedAt?: string
+  _updatedAt?: string
+}
 
 const comments = [
   { initials: 'PK', name: 'Peter Kamau', ref: 'Gor Mahia Clinch Title...', body: 'Great match analysis! Gor Mahia was dominant throughout.', time: '1h ago' },
@@ -90,6 +90,25 @@ const navItems = [
 
 export default function WriterDashboard() {
   const [tab, setTab] = useState<'all' | 'mine'>('all');
+  const [allArticles, setAllArticles] = useState<ArticleRow[]>([]);
+  const [myArticles, setMyArticles] = useState<ArticleRow[]>([]);
+
+  useEffect(() => {
+    const loadAll = async () => {
+      const res = await fetch('/api/articles');
+      if (!res.ok) return;
+      const data = await res.json();
+      setAllArticles(data.items || []);
+    };
+    const loadMine = async () => {
+      const res = await fetch('/api/articles?mine=true');
+      if (!res.ok) return;
+      const data = await res.json();
+      setMyArticles(data.items || []);
+    };
+    loadAll().catch(() => null);
+    loadMine().catch(() => null);
+  }, []);
 
   return (
     <div className="dash-layout">
@@ -261,29 +280,29 @@ export default function WriterDashboard() {
                   </thead>
                   <tbody>
                     {allArticles.map((article) => (
-                      <tr key={article.title}>
+                      <tr key={article.id}>
                         <td style={{ maxWidth: 240 }}>
                           <p style={{ fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>
                             {article.title}
                           </p>
                         </td>
                         <td>
-                          <span className="cat-badge" style={{ background: CAT_COLORS[article.category] ?? RED }}>
-                            {article.category}
+                          <span className="cat-badge" style={{ background: article.category?.color || CAT_COLORS[article.category?.title || ''] ?? RED }}>
+                            {article.category?.title || 'Category'}
                           </span>
                         </td>
-                        <td className="text-muted">{article.author}</td>
+                        <td className="text-muted">{article.author?.name || 'Author'}</td>
                         <td>
                           <span className={`status-pill ${article.status}`}>{article.status}</span>
                         </td>
-                        <td style={{ fontFamily: 'var(--fd)', fontSize: 20, lineHeight: 1 }}>{article.views}</td>
-                        <td className="text-muted">{article.date}</td>
+                        <td style={{ fontFamily: 'var(--fd)', fontSize: 20, lineHeight: 1 }}>—</td>
+                        <td className="text-muted">{article.publishedAt || article._updatedAt || '—'}</td>
                         <td>
                           <div style={{ display: 'flex', gap: 6 }}>
-                            <button className="btn-blue" type="button">
+                            <Link href={`/writer/new?id=${article.id}`} className="btn-blue" type="button">
                               <Pencil size={10} />
                               Edit
-                            </button>
+                            </Link>
                             <button className="btn-icon-danger" type="button">
                               <Trash2 size={11} />
                             </button>
@@ -307,28 +326,28 @@ export default function WriterDashboard() {
                   </thead>
                   <tbody>
                     {myArticles.map((article) => (
-                      <tr key={article.title}>
+                      <tr key={article.id}>
                         <td style={{ maxWidth: 280 }}>
                           <p style={{ fontWeight: 600, fontSize: 13, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', margin: 0 }}>
                             {article.title}
                           </p>
                         </td>
                         <td>
-                          <span className="cat-badge" style={{ background: CAT_COLORS[article.category] ?? RED }}>
-                            {article.category}
+                          <span className="cat-badge" style={{ background: article.category?.color || CAT_COLORS[article.category?.title || ''] ?? RED }}>
+                            {article.category?.title || 'Category'}
                           </span>
                         </td>
                         <td>
                           <span className={`status-pill ${article.status}`}>{article.status}</span>
                         </td>
-                        <td style={{ fontFamily: 'var(--fd)', fontSize: 20, lineHeight: 1 }}>{article.views}</td>
-                        <td className="text-muted">{article.date}</td>
+                        <td style={{ fontFamily: 'var(--fd)', fontSize: 20, lineHeight: 1 }}>—</td>
+                        <td className="text-muted">{article.publishedAt || article._updatedAt || '—'}</td>
                         <td>
                           <div style={{ display: 'flex', gap: 6 }}>
-                            <button className="btn-blue" type="button">
+                            <Link href={`/writer/new?id=${article.id}`} className="btn-blue" type="button">
                               <Pencil size={10} />
                               Edit
-                            </button>
+                            </Link>
                             <button className="btn-icon-danger" type="button">
                               <Trash2 size={11} />
                             </button>

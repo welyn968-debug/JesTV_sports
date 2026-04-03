@@ -43,7 +43,7 @@ JESTV SPORTS is a multi-author football blogging platform for Kenyan audiences. 
 ### Core Design Principles
 
 - **Single deployment** — one Vercel project, one Next.js app, three subdomains
-- **Headless Sanity** — content store only; no Studio UI; all writes go through the Sanity Mutations API from custom dashboards
+- **Headless Sanity** — content store with Studio UI; writes can come from Studio or custom dashboards via the Sanity Mutations API
 - **Supabase for everything transactional** — auth, comments, views, subscribers, invites
 - **Server-first rendering** — article pages are fully server-rendered for SEO and performance
 - **Mobile-first** — primary target is Android mobile on 3G/4G in Kenya
@@ -102,7 +102,7 @@ JESTV SPORTS is a multi-author football blogging platform for Kenyan audiences. 
 | Next.js App | Vercel | Single project, all three subdomains |
 | PostgreSQL Database | Supabase | Managed Postgres, connection pooling via Supabase |
 | Auth | Supabase Auth | JWT-based, server-side session validation |
-| Content Store | Sanity v3 (Sanity.io cloud) | API only, no Studio hosted |
+| Content Store | Sanity v3 (Sanity.io cloud) | API + Studio hosted |
 | Email | Resend | Transactional — invites + subscription confirmations |
 | Media / Image CDN | Sanity CDN | Article images, author photos |
 
@@ -287,7 +287,7 @@ app/
 
 ## 6. Content Layer — Sanity v3
 
-Sanity is used exclusively as a **headless content API**. There is no Sanity Studio deployment. All content authoring happens through the custom writer/admin dashboards, which call the Sanity Mutations API server-side.
+Sanity is used as a **headless content API** with a Studio app available for editorial workflows. Content authoring can happen through Studio or the custom writer/admin dashboards, which call the Sanity Mutations API server-side.
 
 ### Content Access Pattern
 
@@ -1153,7 +1153,7 @@ jestvs-sports/
 │   │   ├── client.ts                 # @sanity/client (read)
 │   │   ├── mutations.ts              # Sanity Mutations API helpers (write)
 │   │   └── queries.ts                # GROQ query definitions
-│   └── sanity.config.ts              # Sanity project config (no Studio)
+│   └── sanity.config.ts              # Sanity project config (Studio + API)
 │
 ├── lib/
 │   ├── supabase/
